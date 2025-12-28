@@ -1,0 +1,39 @@
+# Environnement virtuel
+venv/
+env/
+ENV/
+
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Scripts de démarrage locaux
+run.bat
+run.sh
+
+# Base de données (sera créée dans le conteneur)
+*.db
+*.sqlite
+*.sqlite3
+

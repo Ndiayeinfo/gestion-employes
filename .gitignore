@@ -1,0 +1,28 @@
+# Environnement virtuel
+venv/
+env/
+ENV/
+
+# Base de données SQLite
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
