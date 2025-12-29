@@ -204,21 +204,41 @@ def lire_employe(employe_id: int, db: Session = Depends(get_db)):
 def creer_employe(employe: schemas.EmployeCreate, db: Session = Depends(get_db)):
     """
     Crée un nouvel employé.
+    
+    Les données sont automatiquement validées :
+    - Nom, prénom et poste : obligatoires, 1-100 caractères
+    - Email : obligatoire, format valide, unique
+    - Salaire : optionnel, doit être positif si fourni
+    - Date d'embauche : optionnel, ne peut pas être dans le futur
     """
     # Vérifier si l'email existe déjà
     db_employe = db.query(models.Employe).filter(models.Employe.email == employe.email).first()
     if db_employe:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Un employé avec cet email existe déjà"
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "error": "Email déjà utilisé",
+                "message": f"Un employé avec l'email '{employe.email}' existe déjà",
+                "email": employe.email
+            }
         )
     
-    # Créer le nouvel employé
-    nouvel_employe = models.Employe(**employe.dict())
-    db.add(nouvel_employe)
-    db.commit()
-    db.refresh(nouvel_employe)
-    return nouvel_employe
+    try:
+        # Créer le nouvel employé
+        nouvel_employe = models.Employe(**employe.model_dump())
+        db.add(nouvel_employe)
+        db.commit()
+        db.refresh(nouvel_employe)
+        return nouvel_employe
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": "Erreur lors de la création",
+                "message": "Une erreur est survenue lors de la création de l'employé"
+            }
+        )
 
 # PUT - Met à jour un employé
 @app.put("/employes/{employe_id}", response_model=schemas.EmployeResponse)
@@ -245,7 +265,7 @@ def mettre_a_jour_employe(
         if db_employe_existant:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Un employé avec cet email existe déjà"
+                detail=f"Un employé avec l'email '{employe_update.email}' existe déjà. L'email doit être unique."
             )
     
     # Mettre à jour uniquement les champs fournis
