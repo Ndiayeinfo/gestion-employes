@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import date
 import models
 import schemas
 from database import engine, get_db
@@ -10,10 +11,10 @@ from database import engine, get_db
 models.Base.metadata.create_all(bind=engine)
 
 # Créer l'application FastAPI
-app = FastAPI(
+    app = FastAPI(
     title="API de Gestion des Employés",
     description="API CRUD pour gérer les employés d'une entreprise",
-    version="1.0.0"
+    version="1.1.0"
 )
 
 # Configuration CORS pour permettre les requêtes depuis le frontend
@@ -30,23 +31,74 @@ app.add_middleware(
 def read_root():
     return {
         "message": "API de Gestion des Employés",
+        "version": "1.1.0",
         "documentation": "/docs",
         "endpoints": {
-            "GET /employes": "Liste tous les employés",
+            "GET /employes": "Liste tous les employés (avec filtres avancés)",
             "GET /employes/{id}": "Récupère un employé par ID",
             "POST /employes": "Crée un nouvel employé",
             "PUT /employes/{id}": "Met à jour un employé",
-            "DELETE /employes/{id}": "Supprime un employé"
+            "DELETE /employes/{id}": "Supprime un employé",
+            "GET /employes/recherche/{terme}": "Recherche d'employés",
+            "GET /employes/statistiques": "Statistiques des employés"
+        },
+        "filtres_disponibles": {
+            "departement": "Filtrer par département",
+            "salaire_min": "Salaire minimum",
+            "salaire_max": "Salaire maximum",
+            "date_embauche_apres": "Date d'embauche après (YYYY-MM-DD)",
+            "date_embauche_avant": "Date d'embauche avant (YYYY-MM-DD)",
+            "poste": "Filtrer par poste (recherche partielle)"
         }
     }
 
 # GET - Liste tous les employés
 @app.get("/employes", response_model=List[schemas.EmployeResponse])
-def lire_employes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def lire_employes(
+    skip: int = 0, 
+    limit: int = 100,
+    departement: Optional[str] = None,
+    salaire_min: Optional[float] = None,
+    salaire_max: Optional[float] = None,
+    date_embauche_apres: Optional[date] = None,
+    date_embauche_avant: Optional[date] = None,
+    poste: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     """
-    Récupère la liste de tous les employés avec pagination.
+    Récupère la liste de tous les employés avec pagination et filtres avancés.
+    
+    Filtres disponibles :
+    - departement : Filtrer par département
+    - salaire_min : Salaire minimum
+    - salaire_max : Salaire maximum
+    - date_embauche_apres : Date d'embauche après cette date (format: YYYY-MM-DD)
+    - date_embauche_avant : Date d'embauche avant cette date (format: YYYY-MM-DD)
+    - poste : Filtrer par poste
     """
-    employes = db.query(models.Employe).offset(skip).limit(limit).all()
+    query = db.query(models.Employe)
+    
+    # Appliquer les filtres
+    if departement:
+        query = query.filter(models.Employe.departement == departement)
+    
+    if salaire_min is not None:
+        query = query.filter(models.Employe.salaire >= salaire_min)
+    
+    if salaire_max is not None:
+        query = query.filter(models.Employe.salaire <= salaire_max)
+    
+    if date_embauche_apres:
+        query = query.filter(models.Employe.date_embauche >= date_embauche_apres)
+    
+    if date_embauche_avant:
+        query = query.filter(models.Employe.date_embauche <= date_embauche_avant)
+    
+    if poste:
+        query = query.filter(models.Employe.poste.contains(poste))
+    
+    # Appliquer la pagination
+    employes = query.offset(skip).limit(limit).all()
     return employes
 
 # GET - Récupère un employé par ID
@@ -150,4 +202,42 @@ def rechercher_employes(terme: str, db: Session = Depends(get_db)):
         (models.Employe.email.contains(terme))
     ).all()
     return employes
+
+# GET - Statistiques des employés
+@app.get("/employes/statistiques")
+def obtenir_statistiques(db: Session = Depends(get_db)):
+    """
+    Retourne des statistiques sur les employés.
+    """
+    from sqlalchemy import func
+    
+    total = db.query(func.count(models.Employe.id)).scalar()
+    
+    # Nombre par département
+    par_departement = db.query(
+        models.Employe.departement,
+        func.count(models.Employe.id).label('nombre')
+    ).group_by(models.Employe.departement).all()
+    
+    # Salaire moyen
+    salaire_moyen = db.query(func.avg(models.Employe.salaire)).scalar()
+    
+    # Salaire minimum et maximum
+    salaire_min = db.query(func.min(models.Employe.salaire)).scalar()
+    salaire_max = db.query(func.max(models.Employe.salaire)).scalar()
+    
+    # Nombre par poste
+    par_poste = db.query(
+        models.Employe.poste,
+        func.count(models.Employe.id).label('nombre')
+    ).group_by(models.Employe.poste).all()
+    
+    return {
+        "total_employes": total,
+        "salaire_moyen": round(salaire_moyen, 2) if salaire_moyen else None,
+        "salaire_minimum": salaire_min,
+        "salaire_maximum": salaire_max,
+        "par_departement": {dept: count for dept, count in par_departement if dept},
+        "par_poste": {poste: count for poste, count in par_poste}
+    }
 
