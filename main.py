@@ -11,7 +11,7 @@ from database import engine, get_db
 models.Base.metadata.create_all(bind=engine)
 
 # Créer l'application FastAPI
-    app = FastAPI(
+app = FastAPI(
     title="API de Gestion des Employés",
     description="API CRUD pour gérer les employés d'une entreprise",
     version="1.1.0"
