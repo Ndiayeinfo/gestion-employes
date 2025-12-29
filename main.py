@@ -14,7 +14,7 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="API de Gestion des Employés",
     description="API CRUD pour gérer les employés d'une entreprise",
-    version="1.2.0"
+    version="1.3.0"
 )
 
 # Configuration CORS pour permettre les requêtes depuis le frontend
