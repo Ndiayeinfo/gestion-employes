@@ -67,9 +67,9 @@
 ## Prochaines étapes
 
 1. ✅ **v1.0.0 déployée** - Base CRUD fonctionnelle
-2. 🔄 **En cours** - Feature 1 : Filtres avancés
-3. ⏳ **À venir** - Feature 2 : Tri et pagination améliorée
-4. ⏳ **À venir** - Feature 3 : Statistiques
+2. ✅ **v1.1.0 déployée** - Feature 1 : Filtres avancés + Feature 3 : Statistiques
+3. 🔄 **En cours** - Feature 2 : Tri et pagination améliorée
+4. ⏳ **À venir** - Sprint 2 : Validation, Erreurs, Logging
 
 ## Stratégie de release
 

@@ -5,6 +5,21 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.2.0] - En développement
+
+### Ajouté
+- Tri par colonnes sur l'endpoint GET /employes :
+  - Tri par nom, prénom, email, salaire, date d'embauche, département, poste
+  - Ordre ascendant (asc) ou descendant (desc)
+- Pagination améliorée :
+  - Nouvelle méthode avec `page` (commence à 1) et `per_page` (défaut: 20)
+  - Rétrocompatible avec l'ancienne méthode `skip` et `limit`
+  - Validation des paramètres (page >= 1, per_page entre 1 et 100)
+
+### Modifié
+- Version de l'API mise à jour à 1.2.0
+- Documentation améliorée avec les options de tri et pagination
+
 ## [1.1.0] - 2024-12-28
 
 ### Ajouté
