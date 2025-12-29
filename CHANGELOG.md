@@ -5,7 +5,7 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
-## [1.2.0] - En développement
+## [1.2.0] - 2024-12-28
 
 ### Ajouté
 - Tri par colonnes sur l'endpoint GET /employes :
