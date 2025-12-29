@@ -1,6 +1,6 @@
 # Roadmap - API de Gestion des Employés
 
-## Version actuelle : v1.0.0 ✅
+## Version actuelle : v1.2.0 ✅
 
 **Statut** : Déployée en production sur Compute Engine
 
@@ -68,12 +68,15 @@
 
 1. ✅ **v1.0.0 déployée** - Base CRUD fonctionnelle
 2. ✅ **v1.1.0 déployée** - Feature 1 : Filtres avancés + Feature 3 : Statistiques
-3. 🔄 **En cours** - Feature 2 : Tri et pagination améliorée
-4. ⏳ **À venir** - Sprint 2 : Validation, Erreurs, Logging
+3. ✅ **v1.2.0 déployée** - Feature 2 : Tri et pagination améliorée
+4. ⏳ **Sprint 1 terminé** - Toutes les fonctionnalités de base implémentées
+5. 🎯 **Prochaine étape** - Sprint 2 : Validation, Erreurs, Logging
 
 ## Stratégie de release
 
-- **v1.1.0** : Sprint 1 (Filtres, Tri, Statistiques)
-- **v1.2.0** : Sprint 2 (Validation, Erreurs, Logging)
-- **v2.0.0** : Sprint 3 (Export, Historique) + éventuelles breaking changes
+- ✅ **v1.0.0** : Version initiale (Base CRUD)
+- ✅ **v1.1.0** : Sprint 1 - Partie 1 (Filtres avancés + Statistiques)
+- ✅ **v1.2.0** : Sprint 1 - Partie 2 (Tri et pagination améliorée)
+- ⏳ **v1.3.0** : Sprint 2 (Validation, Erreurs, Logging)
+- ⏳ **v2.0.0** : Sprint 3 (Export, Historique) + éventuelles breaking changes
 
