@@ -7,6 +7,9 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [1.1.0] - 2024-12-28
 
+### Corrigé
+- Correction de l'erreur d'indentation dans main.py qui empêchait le démarrage de l'application
+
 ### Ajouté
 - Filtres avancés sur l'endpoint GET /employes :
   - Filtre par département
