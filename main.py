@@ -14,7 +14,7 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="API de Gestion des Employés",
     description="API CRUD pour gérer les employés d'une entreprise",
-    version="1.1.0"
+    version="1.2.0"
 )
 
 # Configuration CORS pour permettre les requêtes depuis le frontend
@@ -49,33 +49,59 @@ def read_root():
             "date_embauche_apres": "Date d'embauche après (YYYY-MM-DD)",
             "date_embauche_avant": "Date d'embauche avant (YYYY-MM-DD)",
             "poste": "Filtrer par poste (recherche partielle)"
+        },
+        "pagination": {
+            "ancienne_methode": "skip et limit (rétrocompatible)",
+            "nouvelle_methode": "page (commence à 1) et per_page (défaut: 20)"
+        },
+        "tri": {
+            "colonnes": "nom, prenom, email, salaire, date_embauche, departement, poste",
+            "ordre": "asc (défaut) ou desc"
         }
     }
 
 # GET - Liste tous les employés
 @app.get("/employes", response_model=List[schemas.EmployeResponse])
 def lire_employes(
-    skip: int = 0, 
-    limit: int = 100,
+    # Pagination (ancienne méthode - rétrocompatible)
+    skip: Optional[int] = None,
+    limit: Optional[int] = None,
+    # Pagination améliorée (nouvelle méthode)
+    page: Optional[int] = None,
+    per_page: Optional[int] = None,
+    # Filtres
     departement: Optional[str] = None,
     salaire_min: Optional[float] = None,
     salaire_max: Optional[float] = None,
     date_embauche_apres: Optional[date] = None,
     date_embauche_avant: Optional[date] = None,
     poste: Optional[str] = None,
+    # Tri
+    sort: Optional[str] = None,  # nom, prenom, email, salaire, date_embauche, departement, poste
+    order: Optional[str] = "asc",  # asc ou desc
     db: Session = Depends(get_db)
 ):
     """
-    Récupère la liste de tous les employés avec pagination et filtres avancés.
+    Récupère la liste de tous les employés avec pagination améliorée, filtres avancés et tri.
     
-    Filtres disponibles :
+    **Pagination** :
+    - Ancienne méthode (rétrocompatible) : `skip` et `limit`
+    - Nouvelle méthode : `page` (commence à 1) et `per_page` (défaut: 20)
+    
+    **Filtres disponibles** :
     - departement : Filtrer par département
     - salaire_min : Salaire minimum
     - salaire_max : Salaire maximum
     - date_embauche_apres : Date d'embauche après cette date (format: YYYY-MM-DD)
     - date_embauche_avant : Date d'embauche avant cette date (format: YYYY-MM-DD)
-    - poste : Filtrer par poste
+    - poste : Filtrer par poste (recherche partielle)
+    
+    **Tri** :
+    - sort : Colonne à trier (nom, prenom, email, salaire, date_embauche, departement, poste)
+    - order : Ordre de tri (asc ou desc, défaut: asc)
     """
+    from sqlalchemy import asc, desc
+    
     query = db.query(models.Employe)
     
     # Appliquer les filtres
@@ -97,8 +123,66 @@ def lire_employes(
     if poste:
         query = query.filter(models.Employe.poste.contains(poste))
     
+    # Appliquer le tri
+    if sort:
+        sort_column = None
+        sort_lower = sort.lower()
+        
+        if sort_lower == "nom":
+            sort_column = models.Employe.nom
+        elif sort_lower == "prenom":
+            sort_column = models.Employe.prenom
+        elif sort_lower == "email":
+            sort_column = models.Employe.email
+        elif sort_lower == "salaire":
+            sort_column = models.Employe.salaire
+        elif sort_lower == "date_embauche":
+            sort_column = models.Employe.date_embauche
+        elif sort_lower == "departement":
+            sort_column = models.Employe.departement
+        elif sort_lower == "poste":
+            sort_column = models.Employe.poste
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Colonne de tri invalide: {sort}. Colonnes valides: nom, prenom, email, salaire, date_embauche, departement, poste"
+            )
+        
+        if sort_column:
+            if order and order.lower() == "desc":
+                query = query.order_by(desc(sort_column))
+            else:
+                query = query.order_by(asc(sort_column))
+    else:
+        # Tri par défaut : par ID (ordre d'insertion)
+        query = query.order_by(asc(models.Employe.id))
+    
+    # Gérer la pagination (nouvelle méthode prioritaire)
+    if page is not None and per_page is not None:
+        # Nouvelle méthode : page/per_page
+        if page < 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Le numéro de page doit être supérieur ou égal à 1"
+            )
+        if per_page < 1 or per_page > 100:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="per_page doit être entre 1 et 100"
+            )
+        offset = (page - 1) * per_page
+        limit_value = per_page
+    elif skip is not None and limit is not None:
+        # Ancienne méthode : skip/limit (rétrocompatible)
+        offset = skip
+        limit_value = min(limit, 100)  # Limiter à 100 pour éviter les abus
+    else:
+        # Défaut : première page, 20 éléments
+        offset = 0
+        limit_value = 20
+    
     # Appliquer la pagination
-    employes = query.offset(skip).limit(limit).all()
+    employes = query.offset(offset).limit(limit_value).all()
     return employes
 
 # GET - Récupère un employé par ID
