@@ -5,7 +5,22 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
-## [1.2.0] - En développement
+## [1.3.0] - En développement
+
+### Ajouté
+- Validations de données améliorées :
+  - Validation des champs obligatoires (nom, prénom, poste) avec suppression automatique des espaces
+  - Validation du salaire (doit être un nombre positif)
+  - Validation de la date d'embauche (ne peut pas être dans le futur)
+  - Limites de longueur pour tous les champs texte (nom, prénom, poste: 1-100 caractères, téléphone: max 20, département: max 100)
+- Messages d'erreur améliorés et plus descriptifs
+- Documentation des champs avec descriptions Pydantic
+
+### Modifié
+- Version de l'API mise à jour à 1.3.0
+- Messages d'erreur HTTP plus clairs et informatifs
+
+## [1.2.0] - 2024-12-28
 
 ### Ajouté
 - Tri par colonnes sur l'endpoint GET /employes :
